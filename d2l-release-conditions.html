@@ -1,0 +1,29 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<!--
+`d2l-release-conditions`
+View and edit a condition set
+@demo demo/index.html
+-->
+
+<dom-module id="d2l-release-conditions">
+	<template strip-whitespace>
+		<style>
+			:host {
+				display: inline-block;
+			}
+		</style>
+		<h2>Hello [[prop1]]!</h2>
+	</template>
+	<script>
+		Polymer({
+			is: 'd2l-release-conditions',
+			properties: {
+				prop1: {
+					type: String,
+					value: 'd2l-release-conditions',
+				}
+			}
+		});
+	</script>
+</dom-module>
