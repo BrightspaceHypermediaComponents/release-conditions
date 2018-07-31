@@ -343,6 +343,7 @@
 
 			function filterSuccess(res) {
 				if (!res.ok) {
+					/* eslint-disable-next-line */
 					return Promise.reject(
 						new Error(res.status + ' ' + res.statusText)
 					);
@@ -367,7 +368,7 @@
 
 					// TODO(ppaskaris): Figure out how to do this more generally.
 					var openerId = new D2L.LP.Web.UI.Html.AbsoluteHtmlId(settings.OpenerId);
-
+					/* eslint-disable-next-line */
 					return new Promise(function(resolve, reject) {
 						var openEvent = D2L.LP.Web.UI.Legacy.MasterPages.Dialog.Open(
 							openerId,

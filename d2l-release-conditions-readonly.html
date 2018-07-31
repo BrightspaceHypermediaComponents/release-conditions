@@ -163,6 +163,7 @@
 
 			function filterSuccess(res) {
 				if (!res.ok) {
+					/* eslint-disable-next-line */
 					return Promise.reject(
 						new Error(res.status + ' ' + res.statusText)
 					);
