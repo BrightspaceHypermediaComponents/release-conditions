@@ -1,29 +1,731 @@
-<link rel="import" href="../polymer/polymer.html">
-
 <!--
-`d2l-release-conditions`
-View and edit a condition set
-@demo demo/index.html
--->
+	Welcome to the...
 
+			D A N G E R   Z O N E
+
+	Where we violate the ShayDOM for fun and profit.
+-->
+<style>
+	.d2l-release-conditions.d2l-button-icon-secondary > button {
+		padding: 0.5rem 0.66rem !important;
+	}
+</style>
 <dom-module id="d2l-release-conditions">
 	<template strip-whitespace>
 		<style>
-			:host {
+
+			:host[is-root-without-children] .conditions {
+				padding-left: 3rem;
+			}
+
+			.operator-label {
+				text-decoration: underline;
+			}
+
+			.context-actions {
+				margin-left: 0.25rem;
+			}
+
+			.conditions {
+				padding-left: 1rem;
+			}
+
+			.conditions-list {
+				list-style: none;
+				position: relative;
+				margin: 0;
+			}
+
+			.conditions-list-item {
+				margin-bottom: 0.5rem;
+			}
+
+			.conditions-list-item:first-of-type {
+				margin-top: 0.5rem;
+			}
+
+			.conditions-list-item:first-of-type .conditions-list-delimiter {
+				display: none;
+			}
+
+			.conditions-list-delimiter {
 				display: inline-block;
+				margin-left: -2.5rem;
+				margin-right: 0.5rem;
+				text-align: center;
+				width: 2rem;
+			}
+
+			.condition {
+				border-radius: 6px;
+				border: 1px solid #ccc;
+				display: inline-block;
+				padding: 0.25rem 0.25rem 0.25rem 0.75rem;
+			}
+
+			.condition-remove-action {
+				margin-left: 0.25rem;
+			}
+
+			.condition-actions {
+				margin-top: 0.5rem;
+			}
+
+			.children-list {
+				border-left: 1px solid #ccc;
+				list-style: none;
+				margin: 0 0 0 0.5rem;
+				padding: 0.5rem 0 0.5rem 2rem;
+			}
+
+			.children-list-item {
+				margin-bottom: 1rem;
+				position: relative;
+			}
+
+			.children-list-item:before {
+				border-bottom-left-radius: 6px;
+				border-bottom: 1px solid #ccc;
+				border-left: 1px solid #ccc;
+				content: "";
+				display: block;
+				height: 0.66rem;
+				left: calc(-2rem - 1px);
+				position: absolute;
+				top: 0;
+				width: 1.25rem;
+			}
+
+			.children-actions {
+				margin-left: 0.5rem;
+				padding-left: 2rem;
+				position: relative;
+			}
+
+			.children-actions:before {
+				border-bottom-left-radius: 6px;
+				border-bottom: 1px solid #ccc;
+				border-left: 1px solid #ccc;
+				content: "";
+				display: block;
+				height: 1rem;
+				left: 0;
+				position: absolute;
+				top: 0;
+				width: 1.25rem;
+			}
+
+			.actions {
+				margin: 1rem 0;
+			}
+
+			.actions d2l-button {
+				margin-right: 1rem;
+			}
+
+			.actions d2l-button:last-of-type {
+				margin-right: 0;
 			}
 		</style>
-		<h2>Hello [[prop1]]!</h2>
+
+		<!-- This is a wretched hack. -->
+		<noscript id="[[_dialogOpenerId]]"></noscript>
+
+		<template is="dom-if" if="[[!isChild]]">
+			<h3 class="d2l-heading-3">Release Conditions</h3>
+		</template>
+
+		<div class="operator">
+			<span class="operator-label">[[_computeOperatorLabel(data.Operator)]]</span>
+			of these conditions must be met
+			<d2l-dropdown-context-menu
+				class="context-actions"
+				text="Actions">
+				<d2l-dropdown-menu>
+					<d2l-menu label="Actions">
+						<template is="dom-if" if="[[isRootWithoutChildren]]">
+							<d2l-menu-item-radio
+								text="All conditions must be met"
+								value="AND"
+								selected="[[_isEqual(data.Operator, 'AND')]]"
+								on-d2l-menu-item-change="_handleChangeOperator">
+							</d2l-menu-item-radio>
+							<d2l-menu-item-radio
+								text="At least one condition must be met"
+								value="OR"
+								selected="[[_isEqual(data.Operator, 'OR')]]"
+								on-d2l-menu-item-change="_handleChangeOperator">
+							</d2l-menu-item-radio>
+							<d2l-menu-item-separator></d2l-menu-item-separator>
+							<d2l-menu-item
+								text="Add New Condition"
+								on-tap="_handleAddCondition">
+							</d2l-menu-item>
+							<d2l-menu-item
+								text="Add Existing Condition"
+								on-tap="_handleAttachCondition">
+							</d2l-menu-item>
+							<d2l-menu-item
+								text="Add a Group of Conditions"
+								on-tap="_handleAddConditionGroup">
+							</d2l-menu-item>
+							<d2l-menu-item-separator></d2l-menu-item-separator>
+							<d2l-menu-item
+								text="Delete All Conditions"
+								on-tap="_handleRemoveAllConditions">
+							</d2l-menu-item>
+						</template>
+						<template is="dom-if" if="[[isRootWithChildren]]">
+							<d2l-menu-item-radio
+								text="All groups must be met"
+								value="AND"
+								selected="[[_isEqual(data.Operator, 'AND')]]"
+								on-d2l-menu-item-change="_handleChangeOperator">
+							</d2l-menu-item-radio>
+							<d2l-menu-item-radio
+								text="At least one group must be met"
+								value="OR"
+								selected="[[_isEqual(data.Operator, 'OR')]]"
+								on-d2l-menu-item-change="_handleChangeOperator">
+							</d2l-menu-item-radio>
+							<d2l-menu-item-separator></d2l-menu-item-separator>
+							<d2l-menu-item
+								text="Add a Group of Conditions"
+								on-tap="_handleAddConditionGroup">
+							</d2l-menu-item>
+							<d2l-menu-item-separator></d2l-menu-item-separator>
+							<d2l-menu-item
+								text="Delete All Conditions"
+								on-tap="_handleRemoveAllConditions">
+							</d2l-menu-item>
+						</template>
+						<template is="dom-if" if="[[isChild]]">
+							<d2l-menu-item-radio
+								text="All conditions must be met"
+								value="AND"
+								selected="[[_isEqual(data.Operator, 'AND')]]"
+								on-d2l-menu-item-change="_handleChangeOperator">
+							</d2l-menu-item-radio>
+							<d2l-menu-item-radio
+								text="At least one condition must be met"
+								value="OR"
+								selected="[[_isEqual(data.Operator, 'OR')]]"
+								on-d2l-menu-item-change="_handleChangeOperator">
+							</d2l-menu-item-radio>
+							<d2l-menu-item-separator></d2l-menu-item-separator>
+							<d2l-menu-item
+								text="Add New Condition"
+								on-tap="_handleAddCondition">
+							</d2l-menu-item>
+							<d2l-menu-item
+								text="Add Existing Condition"
+								on-tap="_handleAttachCondition">
+							</d2l-menu-item>
+							<d2l-menu-item-separator></d2l-menu-item-separator>
+							<d2l-menu-item
+								text="Delete this Group of Conditions"
+								on-tap="_handleRemoveConditionGroup">
+							</d2l-menu-item>
+						</template>
+					</d2l-menu>
+				</d2l-dropdown-menu>
+			</d2l-dropdown-context-menu>
+		</div>
+
+		<template is="dom-if" if="[[isLeafWithConditions]]">
+			<div class="conditions">
+				<ol class="conditions-list">
+					<template is="dom-repeat" items="{{data.Conditions}}">
+						<li class="conditions-list-item">
+							<span class="conditions-list-delimiter">[[_conditionDelimiter]]</span>
+							<div class="condition">
+								<span inner-h-t-m-l="[[item.Text]]"></span>
+								<d2l-button-icon
+									class="condition-remove-action"
+									icon="d2l-tier1:close-small"
+									text="Remove condition"
+									on-tap="_handleRemoveCondition">
+								</d2l-button-icon>
+							</div>
+						</li>
+					</template>
+					<template is="dom-repeat" items="{{data.NewConditions}}">
+						<li class="conditions-list-item">
+							<span class="conditions-list-delimiter">[[_conditionDelimiter]]</span>
+							<div class="condition">
+								<span inner-h-t-m-l="[[item.Text]]"></span>&nbsp;
+								<d2l-button-icon
+									class="condition-remove-action"
+									icon="d2l-tier1:close-small"
+									text="Remove condition"
+									on-tap="_handleRemoveNewCondition">
+								</d2l-button-icon>
+							</div>
+						</li>
+					</template>
+				</ol>
+				<div class="condition-actions">
+					<d2l-button
+						class="d2l-button-icon-secondary"
+						title="Add New Condition"
+						aria-label="Add New Condition"
+						on-tap="_handleAddCondition">
+						<d2l-icon icon="d2l-tier1:plus-default"></d2l-icon>
+					</d2l-button>
+				</div>
+			</div>
+		</template>
+
+		<template is="dom-if" if="[[isRootWithChildren]]">
+			<div class="children">
+				<ol class="children-list">
+					<template is="dom-repeat" items="{{data.Children}}">
+						<li class="children-list-item">
+							<d2l-release-conditions
+								data="{{item}}"
+								is-child
+								on-d2l-release-conditions-remove-condition-group="_handleRemoveChild">
+							</d2l-release-conditions>
+						</li>
+					</template>
+				</ol>
+				<div class="children-actions">
+					<d2l-button
+						class="d2l-button-icon-secondary"
+						title="Add New Condition Group"
+						aria-label="Add New Condition Group"
+						on-tap="_handleAddConditionGroup">
+						<d2l-icon icon="d2l-tier1:plus-default"></d2l-icon>
+					</d2l-button>
+				</div>
+			</div>
+		</template>
+
+		<template is="dom-if" if="[[!isChild]]">
+			<template is="dom-if" if="[[isRootAndEmpty]]">
+				<div class="actions">
+					<d2l-button
+						icon="d2l-tier1:plus-default"
+						on-tap="_handleAddCondition">
+						Create a Condition
+					</d2l-button>
+					<d2l-button
+						icon="d2l-tier1:search"
+						on-tap="_handleAttachCondition">
+						Find Existing
+					</d2l-button>
+				</div>
+			</template>
+			<div class="actions">
+				<d2l-button
+					primary
+					on-tap="_handleSave">
+					Save
+				</d2l-button>
+			</div>
+		</template>
 	</template>
 	<script>
-		Polymer({
-			is: 'd2l-release-conditions',
-			properties: {
-				prop1: {
-					type: String,
-					value: 'd2l-release-conditions',
+		(function() {
+			'use strict';
+
+			var uid = 0;
+
+			function filterSuccess(res) {
+				if (!res.ok) {
+					return Promise.reject(
+						new Error(res.status + ' ' + res.statusText)
+					);
 				}
+
+				return res;
 			}
-		});
+
+			function parseJSON(res) {
+				return res.json();
+			}
+
+			// TODO(ppaskaris): Create a "real" dialog behavior that abstract this.
+			var DialogServiceShim = {
+				openLegacy: function(location, settings, buttons, srcCallback, responseDataKey) {
+					// Legacy Open() expects an object with a GetUrl() function
+					var urlLocation = {
+						GetUrl: function() {
+							return location;
+						}
+					};
+
+					// TODO(ppaskaris): Figure out how to do this more generally.
+					var openerId = new D2L.LP.Web.UI.Html.AbsoluteHtmlId(settings.OpenerId);
+
+					return new Promise(function(resolve, reject) {
+						var openEvent = D2L.LP.Web.UI.Legacy.MasterPages.Dialog.Open(
+							openerId,
+							urlLocation,
+							srcCallback || '',
+							'', /* resizeCallback*/
+							responseDataKey || '',
+							settings.PreferredSize.PreferredWidth,
+							settings.PreferredSize.PreferredHeight,
+							settings.CloseButtonText,
+							buttons || [], /* buttons */
+							false /* forceTriggerOnCancel */
+						);
+						openEvent.AddListener(function(result) {
+							resolve(result);
+						});
+						openEvent.AddReleaseListener(function() {
+							reject();
+						});
+					});
+				}
+			};
+
+			Polymer({
+				is: 'd2l-release-conditions',
+
+				properties: {
+					// TODO(ppaskaris): Separate HM component out.
+					token: String,
+					href: String,
+
+					data: {
+						type: Object,
+						notify: true
+					},
+
+					isChild: {
+						type: Boolean,
+						value: false,
+						reflectToAttribute: true
+					},
+
+					// Semi-private
+
+					isRootWithoutChildren: {
+						type: Boolean,
+						computed: '_computeIsRootWithoutChildren(isChild, data.Children.length)',
+						reflectToAttribute: true
+					},
+
+					isRootWithChildren: {
+						type: Boolean,
+						computed: '_computeIsRootWithChildren(isChild, data.Children.length)'
+					},
+
+					isLeafWithConditions: {
+						type: Boolean,
+						computed: '_computeIsLeafWithConditions(isChild, data.Conditions.length, data.NewConditions.length)'
+					},
+
+					isRootAndEmpty: {
+						type: Boolean,
+						computed: '_computeIsRootAndEmpty(isChild, data.Conditions.length, data.NewConditions.length, data.Children.length)'
+					},
+
+					// Private
+
+					_conditionDelimiter: {
+						type: String,
+						computed: '_computeConditionDelimiter(data.Operator)'
+					},
+
+					// ShadyDOM doesn't do anything to address duplicate element
+					// ID attributes, so we have to hack around it here with
+					// private ID properties.
+
+					_dialogOpenerId: {
+						type: String,
+						value: function() {
+							return 'd2l-release-conditions-dialog-opener-' + ++uid;
+						}
+					}
+				},
+
+				// TODO(ppaskaris): Less shitty.
+				observers: [
+					'_fetchConditionSet(token, href)'
+				],
+
+				_computeIsRootWithoutChildren: function(isChild, length) {
+					return !isChild && length <= 0;
+				},
+
+				_computeIsRootWithChildren: function(isChild, length) {
+					return !isChild && length > 0;
+				},
+
+				_computeIsLeafWithConditions: function(isChild, length1, length2) {
+					return isChild || length1 > 0 || length2 > 0;
+				},
+
+				_computeIsRootAndEmpty: function(isChild, length1, length2, length3) {
+					return !isChild && length1 <= 0 && length2 <= 0 && length3 <= 0;
+				},
+
+				_isEqual: function(a, b) {
+					return a === b;
+				},
+
+				_fetchConditionSet: function(token, href) {
+					var options = {
+						headers: {
+							Authorization: 'Bearer ' + token
+						}
+					};
+					var that = this;
+					fetch(href, options)
+						.then(filterSuccess)
+						.then(parseJSON)
+						.then(function handleResponse(response) {
+							that.data = that._parseConditionGroup(response.RootConditionGroup);
+						});
+				},
+
+				_parseConditionGroup: function(data) {
+					return {
+						Operator: data.Operator,
+						Conditions: data.Conditions.map(this._parseCondition, this),
+						Children: data.Children.map(this._parseConditionGroup, this),
+						NewConditions: []
+					};
+				},
+
+				_parseCondition: function(data) {
+					return {
+						ConditionId: data.ConditionId,
+						Text: data.Text
+					};
+				},
+
+				_computeOperatorLabel: function(operator) {
+					return operator === 'OR' ? 'At least one' : 'All';
+				},
+
+				_computeConditionDelimiter: function(Operator) {
+					return Operator === 'OR' ? 'or,' : 'and,';
+				},
+
+				_handleChangeOperator: function(event) {
+					var operator = event.target.value;
+					this.set('data.Operator', operator === 'OR' ? 'OR' : 'AND');
+				},
+
+				_handleRemoveCondition: function(event) {
+					this.splice('data.Conditions', event.model.index, 1);
+				},
+
+				_handleRemoveNewCondition: function(event) {
+					this.splice('data.NewConditions', event.model.index, 1);
+				},
+
+				_addCondition: function(condition) {
+
+					// If we get back a ConditionId, then the they added a
+					// duplicate condition, so we just use the one that already
+					// exists.
+					//
+					// Also, treat each of these cases as a set insertion, since
+					// the server does exactly that when saving.
+
+					if (condition.Id) {
+						var isDuplicateCondition = this.data.Conditions
+							.some(function(condition0) {
+								return condition0.ConditionId === condition.Id;
+							});
+						if (!isDuplicateCondition) {
+							this.push('data.Conditions', {
+								ConditionId: condition.Id,
+								Text: condition.Text,
+							});
+						}
+					} else {
+						var isDuplicateNewCondition = this.data.NewConditions
+							.some(function(condition0) {
+								return (
+									condition0.ConditionTypeId === condition.ConditionTypeId
+									&& condition0.Id1 === condition.Id1
+									&& condition0.Id2 === condition.Id2
+									&& condition0.Percentage1 === condition.Percentage1
+									&& condition0.Percentage2 === condition.Percentage2
+									&& condition0.Int1 === condition.Int1
+								);
+							});
+						if (!isDuplicateNewCondition) {
+							this.push('data.NewConditions', condition);
+						}
+					}
+				},
+
+				_handleAddCondition: function() {
+					// TODO(ppaskaris): Figure out how to get a link to this dialog so we don't have to concat the ou.
+					var location = '/d2l/common/dialogs/releaseCondition/createReleaseCondition.d2l?ou=6609';
+					var settings =  {
+						OpenerId: this._dialogOpenerId,
+						PreferredSize: {
+							PreferredWidth: 700,
+							PreferredHeight: 625
+						},
+						CloseButtonText: 'Close'
+					};
+					var buttons = [{
+						Text: 'Add',
+						ResponseType: 1,
+						IsPrimary: true,
+						IsEnabled: true
+					}, {
+						Text: 'Cancel',
+						ResponseType: 2,
+						IsPrimary: false,
+						IsEnabled: true
+					}];
+					var that = this;
+					DialogServiceShim
+						.openLegacy(
+							location,
+							settings,
+							buttons,
+							'CreateCondition', /* srcCallback */
+							'condition' /* responseDataKey */
+						)
+						.then(function handleResult(condition) {
+
+							if (condition !== null && condition !== undefined) {
+								that._addCondition(condition);
+							}
+						});
+				},
+
+				_handleAttachCondition: function() {
+					// TODO(ppaskaris): Figure out how to get a link to this dialog so we don't have to concat the ou.
+					var location = '/d2l/common/dialogs/releaseCondition/attachReleaseCondition.d2l?ou=6609';
+					var settings =  {
+						OpenerId: this._dialogOpenerId,
+						PreferredSize: {
+							PreferredWidth: 700,
+							PreferredHeight: 625
+						},
+						CloseButtonText: 'Close'
+					};
+					var buttons = [{
+						Text: 'Attach',
+						ResponseType: 1,
+						IsPrimary: true,
+						IsEnabled: true
+					}, {
+						Text: 'Cancel',
+						ResponseType: 2,
+						IsPrimary: false,
+						IsEnabled: true
+					}];
+					var that = this;
+					DialogServiceShim
+						.openLegacy(
+							location,
+							settings,
+							buttons,
+							'AttachConditions', /* srcCallback */
+							'conditions' /* responseDataKey */
+						)
+						.then(function handleResult(conditions) {
+
+							if (Array.isArray(conditions)) {
+								conditions.forEach(that._addCondition, that);
+							}
+						});
+				},
+
+				_handleRemoveAllConditions: function() {
+					this.splice('data.Conditions', 0, this.data.Conditions.length);
+					this.splice('data.NewConditions', 0, this.data.NewConditions.length);
+					this.splice('data.Children', 0, this.data.Children.length);
+				},
+
+				_handleRemoveConditionGroup: function() {
+					this.dispatchEvent(
+						new CustomEvent(
+							'd2l-release-conditions-remove-condition-group',
+							{ bubbles: true, composed: true }
+						)
+					);
+				},
+
+				_handleRemoveChild: function(event) {
+
+					this.splice('data.Children', event.model.index, 1);
+
+					// If after the removal, there is only one condition group,
+					// promote it into our position in the hierarchy.
+					var hasOnlyOneChild = this.data.Children.length === 1;
+					if (hasOnlyOneChild) {
+						var friend = this.data.Children[0];
+						this.set('data.Operator', friend.Operator);
+						this.set('data.Conditions', friend.Conditions);
+						this.set('data.NewConditions', friend.NewConditions);
+						this.splice('data.Children', 0, this.data.Children.length);
+					}
+				},
+
+				_handleAddConditionGroup: function() {
+
+					// If there are top-level conditions, demote them into a
+					// group first.
+					var hasTopLevelConditions =
+						this.data.Conditions.length > 0 ||
+						this.data.NewConditions.length > 0;
+					if (hasTopLevelConditions) {
+						this.push('data.Children', {
+							Operator: this.data.Operator,
+							Conditions: this.data.Conditions,
+							Children: [],
+							NewConditions: this.data.NewConditions
+						});
+						this.set('data.Operator', 'AND');
+						this.set('data.Conditions', []);
+						this.set('data.NewConditions', []);
+					}
+
+					this.push('data.Children', {
+						Operator: 'AND',
+						Conditions: [],
+						Children: [],
+						NewConditions: []
+					});
+				},
+
+				_handleSave: function() {
+					var options = {
+						method: 'PUT',
+						headers: {
+							Authorization: 'Bearer ' + this.token,
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({
+							RootConditionGroup: this._formatConditionGroup(this.data)
+						})
+					};
+					var that = this;
+					fetch(this.href, options)
+						.then(filterSuccess)
+						.then(parseJSON)
+						.then(function handleResponse(response) {
+							that.data = that._parseConditionGroup(response.RootConditionGroup);
+						});
+				},
+
+				_formatConditionGroup: function(data) {
+					return {
+						Operator: data.Operator,
+						ConditionIds: data.Conditions.map(this._formatConditionId, this),
+						Children: data.Children.map(this._formatConditionGroup, this),
+						NewConditions: data.NewConditions
+					};
+				},
+
+				_formatConditionId: function(condition) {
+					return condition.ConditionId;
+				}
+			});
+		}());
 	</script>
 </dom-module>

@@ -1,0 +1,299 @@
+<dom-module id="d2l-release-conditions-readonly">
+	<template strip-whitespace>
+		<style>
+
+			:host[is-root-without-children] .conditions {
+				padding-left: 3rem;
+			}
+
+			.operator-label {
+				text-decoration: underline;
+			}
+
+			.conditions {
+				padding-left: 1rem;
+			}
+
+			.conditions-list {
+				list-style: none;
+				position: relative;
+				margin: 0;
+			}
+
+			.conditions-list-item {
+				margin-top: 0.5rem;
+			}
+
+			.conditions-list-item {
+				margin-bottom: 0.5rem;
+			}
+
+			.conditions-list-item:first-of-type {
+				margin-top: 0.5rem;
+			}
+
+			.conditions-list-item:first-of-type .conditions-list-delimiter {
+				display: none;
+			}
+
+			.conditions-list-delimiter {
+				display: inline-block;
+				margin-left: -2.5rem;
+				margin-right: 0.5rem;
+				text-align: center;
+				width: 2rem;
+			}
+
+			.condition {
+				border-radius: 6px;
+				border: 1px solid #ccc;
+				display: inline-block;
+				padding: 0.25rem 0.75rem;
+			}
+
+			.children-list {
+				border-left: 1px solid #ccc;
+				list-style: none;
+				margin: 0 0 0 0.5rem;
+				padding: 0.5rem 0 0.5rem 2rem;
+			}
+
+			.children-list-item {
+				margin-bottom: 1rem;
+				position: relative;
+			}
+
+			.children-list-item:before {
+				border-bottom-left-radius: 6px;
+				border-bottom: 1px solid #ccc;
+				border-left: 1px solid #ccc;
+				content: "";
+				display: block;
+				height: 0.66rem;
+				left: calc(-2rem - 1px);
+				position: absolute;
+				top: 0;
+				width: 1.25rem;
+			}
+
+			d2l-icon.status {
+				margin-right: 0.5rem;
+				margin-top: -5px;
+			}
+
+			.status-met d2l-icon.status {
+				color: #46A661; /* d2l-olivine */
+			}
+
+			.condition.status-met {
+				border-color: #46A661; /* d2l-olivine */
+			}
+
+			.status-unmet d2l-icon.status {
+				color: #CD2026; /* d2l-cinnabar */
+			}
+
+			.condition.status-unmet {
+				border-color: #CD2026; /* d2l-cinnabar */
+			}
+		</style>
+
+		<template is="dom-if" if="[[!isChild]]">
+			<template is="dom-if" if="[[!showStatusForDemo]]">
+				<h3 class="d2l-heading-3">Release Conditions</h3>
+			</template>
+		</template>
+
+		<div class$="[[_computeClassNameForStatus('operator', showStatusForDemo, data.IsMet)]]">
+			<template is="dom-if" if="[[showStatusForDemo]]">
+				<d2l-icon
+					class="status"
+					icon="[[_computeIconForStatus(data.IsMet)]]"
+					title="[[_computeTitleForStatus(data.IsMet)]]">
+				</d2l-icon>
+			</template>
+			<span class="operator-label">[[_computeOperatorLabel(data.Operator)]]</span>
+			of these conditions must be met
+		</div>
+
+		<template is="dom-if" if="[[isLeafNode]]">
+			<div class="conditions">
+				<ol class="conditions-list">
+					<template is="dom-repeat" items="{{data.Conditions}}">
+						<li class="conditions-list-item">
+							<span class="conditions-list-delimiter">[[_conditionDelimiter]]</span>
+							<div class$="[[_computeClassNameForStatus('condition', showStatusForDemo, item.IsMet)]]">
+								<template is="dom-if" if="[[showStatusForDemo]]">
+									<d2l-icon
+										class="status"
+										icon="[[_computeIconForStatus(item.IsMet)]]"
+										title="[[_computeTitleForStatus(item.IsMet)]]">
+									</d2l-icon>
+								</template>
+								<span inner-h-t-m-l="[[item.Text]]"></span>
+							</div>
+						</li>
+					</template>
+				</ol>
+			</div>
+		</template>
+
+		<template is="dom-if" if="[[isRootWithChildren]]">
+			<div class="children">
+				<ol class="children-list">
+					<template is="dom-repeat" items="{{data.Children}}">
+						<li class="children-list-item">
+							<d2l-release-conditions-readonly
+								data="{{item}}"
+								is-child
+								show-status-for-demo="[[showStatusForDemo]]">
+							</d2l-release-conditions-readonly>
+						</li>
+					</template>
+				</ol>
+			</div>
+		</template>
+	</template>
+	<script>
+		(function() {
+			'use strict';
+
+			function filterSuccess(res) {
+				if (!res.ok) {
+					return Promise.reject(
+						new Error(res.status + ' ' + res.statusText)
+					);
+				}
+
+				return res;
+			}
+
+			function parseJSON(res) {
+				return res.json();
+			}
+
+			Polymer({
+				is: 'd2l-release-conditions-readonly',
+
+				properties: {
+					// TODO(ppaskaris): Separate HM component out.
+					token: String,
+					href: String,
+
+					data: Object,
+
+					// Hack for demo.
+					showStatusForDemo: {
+						type: Boolean,
+						value: false
+					},
+
+					isChild: {
+						type: Boolean,
+						value: false,
+						reflectToAttribute: true
+					},
+
+					// Semi-private
+
+					isRootWithoutChildren: {
+						type: Boolean,
+						computed: '_computeIsRootWithoutChildren(isChild, data.Children.length)',
+						reflectToAttribute: true
+					},
+
+					isRootWithChildren: {
+						type: Boolean,
+						computed: '_computeIsRootWithChildren(isChild, data.Children.length)',
+						reflectToAttribute: true
+					},
+
+					isLeafNode: {
+						type: Boolean,
+						computed: '_computeIsLeafNode(isChild, data.Children.length)'
+					},
+
+					// Private
+
+					_conditionDelimiter: {
+						type: String,
+						computed: '_computeConditionDelimiter(data.Operator)'
+					}
+				},
+
+				// TODO(ppaskaris): Less shitty.
+				observers: [
+					'_fetchConditionSet(token, href)'
+				],
+
+				_computeIsRootWithoutChildren: function(isChild, length) {
+					return !isChild && length <= 0;
+				},
+
+				_computeIsRootWithChildren: function(isChild, length) {
+					return !isChild && length > 0;
+				},
+
+				_computeIsLeafNode: function(isChild, length) {
+					return isChild || length <= 0;
+				},
+
+				_fetchConditionSet: function(token, href) {
+					var options = {
+						headers: {
+							Authorization: 'Bearer ' + token
+						}
+					};
+					var that = this;
+					fetch(href, options)
+						.then(filterSuccess)
+						.then(parseJSON)
+						.then(function handleResponse(response) {
+							that.data = that._parseConditionGroup(response.RootConditionGroup);
+						});
+				},
+
+				_parseConditionGroup: function(data) {
+					return {
+						Operator: data.Operator,
+						Conditions: data.Conditions.map(this._parseCondition, this),
+						Children: data.Children.map(this._parseConditionGroup, this),
+						IsMet: data.IsMet === true
+					};
+				},
+
+				_parseCondition: function(data) {
+					return {
+						ConditionId: data.ConditionId,
+						Text: data.Text,
+						IsMet: data.IsMet === true
+					};
+				},
+
+				_computeOperatorLabel: function(operator) {
+					return operator === 'OR' ? 'At least one' : 'All';
+				},
+
+				_computeConditionDelimiter: function(Operator) {
+					return Operator === 'OR' ? 'or,' : 'and,';
+				},
+
+				_computeClassNameForStatus: function(base, showStatusForDemo, isMet) {
+					var className = base;
+					if (showStatusForDemo) {
+						className += isMet ? ' status-met' : ' status-unmet';
+					}
+					return className;
+				},
+
+				_computeIconForStatus: function(isMet) {
+					return isMet ? 'd2l-tier1:check-circle' : 'd2l-tier1:unapproved';
+				},
+
+				_computeTitleForStatus: function(isMet) {
+					return isMet ? 'condition is met' : 'condition is not met';
+				}
+			});
+		}());
+	</script>
+</dom-module>
