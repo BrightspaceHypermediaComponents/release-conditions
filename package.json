@@ -1,7 +1,7 @@
 {
   "name": "d2l-release-conditions",
-    "description": "View and edit a condition set",
-    "private": true,
+  "description": "View and edit a condition set",
+  "private": true,
   "scripts": {
     "postinstall": "polymer install --variants",
     "lint": "npm run lint:wc && npm run lint:html",
