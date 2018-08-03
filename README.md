@@ -82,6 +82,14 @@ To lint AND run local unit tests:
 npm test
 ```
 
+### Temporary BSI Change Needed for LMS
+We're not quite ready to publish this component to Bower and add it to BSI.  For now, on your local dev checkout
+of [Brightspace Integration][bsi-link], add the following line to `web-components\bsi.html`:
+
+```
+<link rel="import" href="../bower_components/d2l-release-conditions/all-imports.html">
+```
+
 ### How to Test Changes Locally Within the LMS
 1. Develop within this repo as usual
 2. Once the changes are done that you want to try, run the command `bower link` in the root of this repo locally
