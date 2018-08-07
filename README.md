@@ -101,6 +101,14 @@ of [Brightspace Integration][bsi-link], add the following line to `web-component
 8. Change the `daylight-polymer-<version>` property to the localhost server (note the trailing /)
 9. Restart IIS
 
+### Shadow DOM & Testing
+Due to the eventual planned migration to Polymer 2, which uses the shadow DOM by default, it is important that the Polymer element works in the shadow DOM while it's still hybrid, even though hybrid elements only optionally use it. Ensure that you test with the shadow DOM on before propagating this to BSI!
+
+Here are some resources on testing with the shadow DOM:
+[https://www.polymer-project.org/1.0/docs/devguide/settings](https://www.polymer-project.org/1.0/docs/devguide/settings)
+
+[https://github.com/BrightspaceUI/guide/wiki/Testing#shady-and-shadow-dom](https://github.com/BrightspaceUI/guide/wiki/Testing#shady-and-shadow-dom)
+
 ## How to Propagate Changes to the LMS
 1. Merge your PR into the master branch of this repo
 2. Create a new release, versioning appropriately
